@@ -1,0 +1,20 @@
+# Swap-filer (skapas under redigering)
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+
+# Session-filer
+Session.vim
+Sessionx.vim
+
+# Temporära filer och säkerhetskopior
+.netrwhist
+*~
+
+# Auto-genererade tagg-filer (t.ex. från ctags)
+tags
+
+# Persistent undo-historik
+[._]*.un~
+
