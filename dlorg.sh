@@ -108,7 +108,7 @@ while IFS= read -r -d '' file; do
 # Require inotify-tools to be installed
 require_command "inotifywait"
 inotifywait -m -e close_write -e moved_to --format "%f"│"$~/home/{WATCH_DIR}" | while read -r filename; 
-do mv "$filename" {WATCH_DIR}/$FILE_CATEGORY/; done
+do mv "$filename" home/{WATCH_DIR}/$FILE_CATEGORY/; done
 
 
 
