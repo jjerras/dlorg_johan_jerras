@@ -1,8 +1,38 @@
 #!/usr/bin/env bash
 
-echo "$~/home/Downloads"
-mkdir -p 
+
+# Where to watch for new files
+"WATCH_DIR"="${HOME}/Downloads"
+
+# where to move the files
+"DESTINATION_DIR"="${HOME}/Downloads/"
+
+# List of file extensions to exclude from processing
+EXCLUDED_EXTENSIONS=(
+    "*.crdownload" "*.part" "*.temp" "*.tmp" "*.!ut" "*.!ut2" "*.!ut3" "*.!ut4" "*.!ut5" "*.!ut6" "*.!ut7" "*.!ut8" "*.!ut9"
+)
+
+EXCLUDED_NAMES=(
+    ".gitignore" ".DS_Store" "Thumbs.db"
+)
+
+# File types and their corresponding extensions (add more as needed)
+declare -A file_types=(
+    ["document"]="*.pdf|*.docx|*.xlsx|*.pptx|*.txt"    
+    ["pdf_presentation"]="*.pdf|*.ppt|*.pptx"
+    ["image"]="*.jpg|*.jpeg|*.png|*.gif|*.bmp|*.tiff"
+    ["audio"]="*.mp3|*.wav|*.flac|*.aac|*.ogg"    
+    ["video"]="*.mp4|*.mkv|*.avi|*.mov|*.flv|*.wmv|*.webm"
+    ["data"]="*.csv|*.json|*.xml|*.yaml|*.yml|*.sql|*.db|*.sqlite"
+
 
 inotifywait -m -e close_write -e moved_to --format "%f" "$~/home/Downloads" | while read -r filename; do
     mv "$filename" ~/Downloads/...
 done
+
+for file in ~/home/Downloads
+
+if [[ -f "$*.docx" ]]
+
+mkdir -p 01_documents 2_pdf_presentations 03_images 04_audio 05_video
+06_data 
