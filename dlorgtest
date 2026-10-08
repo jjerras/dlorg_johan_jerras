@@ -1,38 +1,75 @@
 #!/usr/bin/env bash
 
+set -u 
 
 # Where to watch for new files
-"WATCH_DIR"="${HOME}/Downloads"
+WATCH_DIR="${HOME}/Downloads"
+read -p "Enter the directory to watch (default: $WATCH_DIR): " input_dir
+if [[ -n "$input_dir" ]]; then
+    WATCH_DIR="$input_dir"
+elif [[ ! -d "$WATCH_DIR" ]]; then
+    echo "Creating watch directory: $WATCH_DIR"
+    mkdir -p "$WATCH_DIR"
+fi
 
-# where to move the files
-"DESTINATION_DIR"="${HOME}/Downloads/"
+file="$1"
 
+extension="${file##*.}"
 # List of file extensions to exclude from processing
-EXCLUDED_EXTENSIONS=(
-    "*.crdownload" "*.part" "*.temp" "*.tmp" "*.!ut" "*.!ut2" "*.!ut3" "*.!ut4" "*.!ut5" "*.!ut6" "*.!ut7" "*.!ut8" "*.!ut9"
+EXCLUDED_EXTENSION=(
+    "dlorg""*.crdownload" "*.part" "*.temp" "*.tmp" "*.!ut" ".gitignore" ".DS_Store" "Thumbs.db"
 )
+is_excluded_extension() {
+local filename="$1"
+local excluded_extension
+for excluded_extension in "${EXCLUDED_EXTENSION[@]}"; do
+    if [[ "$filename" == $excluded_extension ]]; then
+        return 0  # Extension is excluded
+    fi
+done
+return 1  # Extension is not excluded
+}
 
-EXCLUDED_NAMES=(
-    ".gitignore" ".DS_Store" "Thumbs.db"
-)
+get_category() {
+local extension="$1"
+    if [[ -n "${filetype[$extension]+_}" ]]; then
+        echo "${filetype[$extension]}"
+    else
+        echo "unknown"
+    fi
+}
 
+filetype="$(get_category "$extension")"
 # File types and their corresponding extensions (add more as needed)
-declare -A file_types=(
-    ["document"]="*.pdf|*.docx|*.xlsx|*.pptx|*.txt"    
-    ["pdf_presentation"]="*.pdf|*.ppt|*.pptx"
-    ["image"]="*.jpg|*.jpeg|*.png|*.gif|*.bmp|*.tiff"
-    ["audio"]="*.mp3|*.wav|*.flac|*.aac|*.ogg"    
-    ["video"]="*.mp4|*.mkv|*.avi|*.mov|*.flv|*.wmv|*.webm"
-    ["data"]="*.csv|*.json|*.xml|*.yaml|*.yml|*.sql|*.db|*.sqlite"
+declare -A filetype=(
+    ["01_document"]="*.docx|*.doc|*.txt|*.odt|*.rtf|*.md"    
+    ["02_pdf_presentation"]="*.pdf|*.ppt|*.pptx"
+    ["03_image"]="*.jpg|*.jpeg|*.png|*.gif|*.bmp|*.tiff"
+    ["04_audio"]="*.mp3|*.wav|*.flac|*.aac|*.ogg|*.m4a|*.aiff"    
+    ["05_video"]="*.mp4|*.mkv|*.avi|*.mov|*.flv|*.wmv|*.webm"
+    ["06_data"]="*.csv|*.json|*.xml|*.yaml|*.yml|*.sql|*.db|*.sqlite"
+)
 
-
-inotifywait -m -e close_write -e moved_to --format "%f" "$~/home/Downloads" | while read -r filename; do
-    mv "$filename" ~/Downloads/...
+# Require inotify-tools to be installed
+require_command "inotifywait"
+inotifywait -m -e close_write -e moved_to --format "%f"│"$~/home/Downloads" | 
+while read -r filename; 
+do mv "$filename" ~/Downloads/$filename 
 done
 
-for file in ~/home/Downloads
+find  "$WATCH_dDIR" -maxdepth 1 -type f -print0 | while IFS= read -r -d '' file; do
+    if is_excluded_extension "$file"; then
+        echo "Skipping excluded file: $file"
+        continue
+    fi
 
-if [[ -f "$*.docx" ]]
+    if [[ ! -d "$filetype" ]]; then
+        echo "Creating directory for file type: $filetype"
+        mkdir -p "$filetype"
+    fi
 
-mkdir -p 01_documents 2_pdf_presentations 03_images 04_audio 05_video
-06_data 
+    echo "Moving file: $file to $filetype"
+    mv "$file" "$filetype/"
+done
+
+
