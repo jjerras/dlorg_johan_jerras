@@ -69,10 +69,15 @@ declare -a EXCLUDED_EXTENSION=(
     "*.DS_Store"
     "*Thumbs.db"
 )
-ls -a  home/"$WATCH_DIR"
-filename="$*"
-extension="${filename##*.}"
+get_extension() {
+    filename="$1"
+    if [[ "$filename" != *.* ]]; then
+        echo ""
+        return
+    fi
 
+    extension="${filename##*.}"
+}
 is_excluded_extension() {
 local filename="$filename"
 local excluded_extension
@@ -107,7 +112,7 @@ while IFS= read -r -d '' file; do
 
 # Require inotify-tools to be installed
 require_command "inotifywait"
-inotifywait -m -e close_write -e moved_to --format "%f"│"$~/home/{WATCH_DIR}" | while read -r filename; 
+inotifywait -m -e close_write -e moved_to --format "%f"│"$~/hoe/{WATCH_DIR}" | while read -r filename; 
 do mv "$filename" {WATCH_DIR}/$FILE_CATEGORY/; done
 
 
