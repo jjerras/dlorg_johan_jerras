@@ -11,14 +11,16 @@ fi
 
 # List of file extensions to exclude from processing
 declare -a EXCLUDED_EXTENSION=(
-    "dlorg"
     "crdownload"
     "part"
     "temp"
     "tmp"
-    "*ut"
-    ".gitignore"
-    "DS_Store"
+)
+
+declare -a EXCLUDED_NAMES=(
+    "dlorg"
+    ".gitignor"
+    ".DS_Store"
     "Thumbs.db"
 )
 
@@ -68,62 +70,64 @@ declare -A FILE_CATEGORY=(
     ["sqlite"]="06_data"
 )
 
-
 # Require inotify-tools to be installed for this script to work
-command -v inotifywait >/dev/null 2>&1; echo $?     # 0 = exists, 1 = not found
-command -v find >/dev/null 2>&1; echo $?    # 1
     if ! command -v inotifywait >/dev/null 2>&1; then
         echo "dlorg: You need to install inotify-tools to use this script. Please install it and try again."
         exit 1
     fi
 
-
 get_extension() {
-find "$WATCH_DIR" -type f -print0 | while IFS= read -r -d ' ' file; do
-for file in "$WATCH_DIR"/*; do      
-    if [ -f "$1" ]; do
-local filename="$1"
-    if [ -f "$1" ]; do
-local extension="${filename##*/.}"
-    echo "$extension"
-    if [[ "$extension" != *.* ]]; then
-        echo "error: No extension found for file: $filename" >&2
-        return
+local filname="$1"
+local extension
+    if [[ "$filename" != *.* ]] then
+    printf '%s\n' ""
+    return 0
     fi
+extension="${filename##.}"
+printf '%s\n' "${extension,,}"
 }
 
-get_EXCLUDED_EXTENSION() {
-for excluded_extension in "${EXCLUDED_EXTENSION[@]}"; do
-    if [[ "$extension" == $excluded_extension ]]; then
-        return 0  # Extension is excluded
-    fi
-done
+is_excluded_name () {
+    local filename="$1"
+    local is_excluded_name
+    for excluded_name in "$EXCLUDED_NAMES[@]}"; do
+        if [[ "$filname" == "$excluded_name"]]; then
+        return 0
+        fi
+    done
 
-return 1  # Extension is not excluded
+    return 1
 }
 
-
-get_filetype() {
-filetype="{$FILE_CATEGORY[$extension]}"
-FILE_CATEGORY="$filetype"
-    if [[ -z "$FILE_CATEGORY" ]]; then
-        echo "error: No category found for extension: $extension" >&2
-        return
+is_excluded_extension () {
+    local extension="$1"
+    local excluded_extension
+    for excluded_extension in "${EXCLUDED_EXTENSION[@]}"; do
+    if [["$extension == "$excluded_extension"]]; then
+    return 0
     fi
+
     
-    if [[ ! -d "$FILE_CATEGORY" ]]; then
-        echo "dlorg: Creating directory for file type: $file_category"
-        mkdir -p "$WATCH_DIR/$file_category"
+}
+
+process_file() {
+filetype="{$FILE_CATEGORY[$extension]}"
+    for $filetype in ${FILE_CATEGORY}; do
+        if [[ -z "$FILE_CATEGORY" ]]; then
+        echo "error: No category found for extension: $extension" >&2
+       return 0 # File-type not included in the script
     fi
-    echo "dlorg: Moving file: $filename to $file_category"
-    mv "$filename" "$WATCH_DIR/$file_category/"
-    ls -R "$WATCH_DIR"
 done
 }
 
 
 require_command "inotifywait" () {
-inotifywait -m -e close_write -e moved_to --format "%f"│"$~/hoe/{WATCH_DIR}" | while read -r filename; 
-do mv "$filename" "$WATCH_DIR/$file_category/"; done
-done
+inotifywait -m -e close_write -e moved_to --format "%W%f" "{$WATCH_DIR}" | while read -r filename; 
+do mv -n "$filename" "$WATCH_DIR/$FILE_CATEGORY/"; done
+    if [[ ! -d "$FILE_CATEGORY" ]]; then
+        echo "dlorg: Creating directory for file type: $FILE_CATEGORY"
+        mkdir -p "$WATCH_DIR/$FILE_CATEGORY"
+    fi
+    echo "dlorg: Moving file: $filename to $file_category"
+    mv -n "$filename" "$WATCH_DIR/$file_category/"
 }
