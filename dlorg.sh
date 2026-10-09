@@ -10,7 +10,7 @@ if [[ ! -d "$WATCH_DIR" ]]; then
 fi
 
 # List of file extensions to exclude from processing
-declare -a EXCLUDED_EXTENSION=(
+declare -a EXCLUDED_EXTENSIONS=(
     "crdownload"
     "part"
     "temp"
@@ -87,11 +87,11 @@ extension="${filename##.}"
 printf '%s\n' "${extension,,}"
 }
 
-is_excluded_name () {
+is_excluded_name() {
     local filename="$1"
     local is_excluded_name
-    for excluded_name in "$EXCLUDED_NAMES[@]}"; do
-        if [[ "$filname" == "$excluded_name"]]; then
+    for excluded_name in "${EXCLUDED_NAMES[@]}"; do
+        if [[ "$filname" == "$excluded_name" ]]; then
         return 0
         fi
     done
@@ -99,19 +99,20 @@ is_excluded_name () {
     return 1
 }
 
-is_excluded_extension () {
+is_excluded_extension() {
     local extension="$1"
     local excluded_extension
-    for excluded_extension in "${EXCLUDED_EXTENSION[@]}"; do
-    if [["$extension == "$excluded_extension"]]; then
-    return 0
-    fi
-
-    
+    for excluded_extension in "${EXCLUDED_EXTENSIONS[@]}"; do
+        if [[ "$extension" == "$excluded_extension" ]]; then
+        return 0
+        fi
+    done
 }
 
-process_file() {
-filetype="{$FILE_CATEGORY[$extension]}"
+get_category () {
+    local extension="$1"
+    if [[ -n "{$FILE_CATEGORY[$extension]+exists}" ]]; then
+
     for $filetype in ${FILE_CATEGORY}; do
         if [[ -z "$FILE_CATEGORY" ]]; then
         echo "error: No category found for extension: $extension" >&2
@@ -119,6 +120,10 @@ filetype="{$FILE_CATEGORY[$extension]}"
     fi
 done
 }
+
+process_file() {
+
+
 
 
 require_command "inotifywait" () {
