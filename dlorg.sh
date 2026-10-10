@@ -77,12 +77,12 @@ declare -A FILE_CATEGORY=(
     fi
 
 get_extension() {
-local filname="$1"
-local extension
-    if [[ "$filename" != *.* ]] then
-    printf '%s\n' ""
-    return 0
-    fi
+    local filname="$1"
+    local extension
+        if [[ "$filename" != *.* ]] then
+        printf '%s\n' ""
+        return 0
+        fi
 extension="${filename##.}"
 printf '%s\n' "${extension,,}"
 }
@@ -111,28 +111,38 @@ is_excluded_extension() {
 
 get_category () {
     local extension="$1"
-    if [[ -n "{$FILE_CATEGORY[$extension]+exists}" ]]; then
-
-    for $filetype in ${FILE_CATEGORY}; do
+        if [[ -n "{$FILE_CATEGORY[$extension]+exists}" ]]; then
+    printf '%s\n' "{$FILE_CATEGORY[$extension]}"
+    else
         if [[ -z "$FILE_CATEGORY" ]]; then
         echo "error: No category found for extension: $extension" >&2
-       return 0 # File-type not included in the script
-    fi
-done
-}
+        return 0 # File-type not included in the script
+        fi
 
 process_file() {
-
-
-
-
-require_command "inotifywait" () {
-inotifywait -m -e close_write -e moved_to --format "%W%f" "{$WATCH_DIR}" | while read -r filename; 
-do mv -n "$filename" "$WATCH_DIR/$FILE_CATEGORY/"; done
-    if [[ ! -d "$FILE_CATEGORY" ]]; then
-        echo "dlorg: Creating directory for file type: $FILE_CATEGORY"
-        mkdir -p "$WATCH_DIR/$FILE_CATEGORY"
-    fi
-    echo "dlorg: Moving file: $filename to $file_category"
-    mv -n "$filename" "$WATCH_DIR/$file_category/"
+    local file_path="$1"
+    local filename
+    local extension
+    local category
+    local destenation_dir
+        if [[ ! -f "file_path" ]]; then
+        return 0
+        fi
+filename="$(basename -- "$file_path")"
+        if excluded_name $filename
+        return 0
+        fi
+extension="$(get_extension "$filename")"
+        if excluded_extension $extension
+        return 0
+        fi
+category="$(get_category "$extension")"
+destenation_dir="${WAtCH_DIR}/{FILE_CATEGORY}"
+        if [[ ! -d "$FILE_CATEGORY" ]]; then
+    echo "dlorg: Creating directory for file type: $FILE_CATEGORY"
+    mkdir -p "$destinatio_dir"
+        fi
+    mv -n -- "$file_path" "$destination_dir/"
 }
+
+
