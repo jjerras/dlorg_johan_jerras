@@ -19,7 +19,7 @@ declare -a EXCLUDED_EXTENSIONS=(
 
 declare -a EXCLUDED_NAMES=(
     "dlorg"
-    ".gitignor"
+    ".gitignore"
     ".DS_Store"
     "Thumbs.db"
 )
@@ -77,72 +77,84 @@ declare -A FILE_CATEGORY=(
     fi
 
 get_extension() {
-    local filname="$1"
+    local filename="$1"
     local extension
-        if [[ "$filename" != *.* ]] then
-        printf '%s\n' ""
-        return 0
+        if [[ "$filename" != *.* ]]; then
+    return 0
+        else
+    return 1
         fi
-extension="${filename##.}"
-printf '%s\n' "${extension,,}"
+    extension="${filename##*.}"
+    printf '%s\n'"${extension,,}"
 }
 
 is_excluded_name() {
     local filename="$1"
-    local is_excluded_name
+    local excluded_name
     for excluded_name in "${EXCLUDED_NAMES[@]}"; do
         if [[ "$filname" == "$excluded_name" ]]; then
-        return 0
+    return 0
+        else
+    return 1
         fi
     done
-
-    return 1
 }
 
 is_excluded_extension() {
     local extension="$1"
     local excluded_extension
     for excluded_extension in "${EXCLUDED_EXTENSIONS[@]}"; do
-        if [[ "$extension" == "$excluded_extension" ]]; then
-        return 0
+        if [[ "$extension" == $excluded_extension ]]; then
+    return 0
+        else
+    return 1
         fi
-    done
+    done   
 }
 
 get_category () {
     local extension="$1"
-        if [[ -n "{$FILE_CATEGORY[$extension]+exists}" ]]; then
-    printf '%s\n' "{$FILE_CATEGORY[$extension]}"
+        if [[ -n "{$FILE_CATEGORY{$extension}+exists}" ]]; then
+    printf '%s\n' "{$FILE_CATEGORY{$extension}}"
     else
         if [[ -z "$FILE_CATEGORY" ]]; then
         echo "error: No category found for extension: $extension" >&2
-        return 0 # File-type not included in the script
+    return 0 # File-type not included in the script
+    else
+    return 1
         fi
 
 process_file() {
-    local file_path="$1"
+    local $file_path="$1"
     local filename
     local extension
     local category
-    local destenation_dir
-        if [[ ! -f "file_path" ]]; then
-        return 0
+    local destination_dir
+        if [[ ! -f "$file_path" ]]; then
+    return 0
         fi
+    
 filename="$(basename -- "$file_path")"
-        if excluded_name $filename
-        return 0
+        if is_excluded_name "$filename"; then 
+    return 0
+        else
+    return 1
         fi
 extension="$(get_extension "$filename")"
-        if excluded_extension $extension
-        return 0
+        if is_excluded_extension "$extension"; then
+    return 0
+        else
+    return 1
         fi
 category="$(get_category "$extension")"
-destenation_dir="${WAtCH_DIR}/{FILE_CATEGORY}"
-        if [[ ! -d "$FILE_CATEGORY" ]]; then
-    echo "dlorg: Creating directory for file type: $FILE_CATEGORY"
-    mkdir -p "$destinatio_dir"
+destination_dir="${WATCH_DIR}/{$category}"
+        if [[ ! -d $category ]]; then
+    return 1
+echo "dlorg: Creating directory for file type: $category"
+mkdir -p "$category"
+    else
+mv -n -- "$file_path" "$destination_dir/"
         fi
-    mv -n -- "$file_path" "$destination_dir/"
 }
 
 
