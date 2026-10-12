@@ -82,10 +82,9 @@ get_extension() {
         if [[ "$filename" != *.* ]]; then
     return 0
         else
-    return 1
-        fi
     extension="${filename##*.}"
     printf '%s\n'"${extension,,}"
+        fi
 }
 
 is_excluded_name() {
@@ -116,13 +115,13 @@ get_category () {
     local extension="$1"
         if [[ -n "{$FILE_CATEGORY{$extension}+exists}" ]]; then
     printf '%s\n' "{$FILE_CATEGORY{$extension}}"
-    else
-        if [[ -z "$FILE_CATEGORY" ]]; then
+    elif [[ -z "$FILE_CATEGORY" ]]; then
         echo "error: No category found for extension: $extension" >&2
     return 0 # File-type not included in the script
     else
     return 1
         fi
+}
 
 process_file() {
     local $file_path="$1"
@@ -146,6 +145,7 @@ extension="$(get_extension "$filename")"
         else
     return 1
         fi
+
 category="$(get_category "$extension")"
 destination_dir="${WATCH_DIR}/{$category}"
         if [[ ! -d $category ]]; then
@@ -155,6 +155,18 @@ mkdir -p "$category"
     else
 mv -n -- "$file_path" "$destination_dir/"
         fi
+}
+
+require_command "inotifywait" () {
+inotifywait -m -e close_write -e moved_to --format "%W%f" "{$WATCH_DIR}" | while read -r filename; do 
+    mv -n "$filename" "$WATCH_DIR/$FILE_CATEGORY/"; then
+    if [[ ! -d "$FILE_CATEGORY" ]]; then
+        echo "dlorg: Creating directory for file type: $FILE_CATEGORY"
+        mkdir -p "$WATCH_DIR/$FILE_CATEGORY"
+    fi
+    echo "dlorg: Moving file: $filename to $file_category"
+    mv -n "$filename" "$WATCH_DIR/$file_category/"
+done
 }
 
 
