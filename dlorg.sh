@@ -84,7 +84,6 @@ get_extension() {
         fi
     extension="${filename##*.}"
     printf '%s\n' "${extension,,}"
-        fi
 }
 
 is_excluded_name() {
@@ -114,23 +113,20 @@ get_category () {
         if [[ -n  "$extension" && -n "${FILE_CATEGORY[$extension]+exists}" ]]; then
     printf '%s\n' "${FILE_CATEGORY[$extension]}"
         else 
-    printf '%s\n' "$FAllBACK_CATEGORY"
+    printf '%s\n' "$FALLBACK_CATEGORY"
         fi
 }
 
 process_file() {
-    local $file_path="$1"
+    local file_path="$1"
     local filename extension category destination_dir
-        
-        if [[ ! -f "$file_path" && ! -L "$file_path" ]]; then
+        if [[ ! -f "$file_path" || -L "$file_path" ]]; then
     return 0
-        fi   
-
+        fi
 filename="$(basename -- "$file_path")"
         if is_excluded_name "$filename"; then 
     return 0
         fi
-
 extension="$(get_extension "$filename")"
         if is_excluded_extension "$extension"; then
     return 0
@@ -141,9 +137,13 @@ destination_dir="$WATCH_DIR/$category"
         if [[ ! -d $destination_dir ]]; then
 echo "dlorg: Creating directory for file type: $category"
 mkdir -p "$destination_dir"
+    return 0
         fi
-echo "dlorg: Moving $filename -> @category"
-mv -n -- "$file_path" "$destination_dir/"
+if mv -n -- "$file_path" "$destination_dir/"; then
+echo "dlorg: Moving $filename -> $category"
+        else
+    return 1
+        fi    
 }
 
 main () {
